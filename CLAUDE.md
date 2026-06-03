@@ -66,6 +66,16 @@ lowcmd 控制，积累了手势库。所有结论均经真机实测校准。
 4. 怀疑限位时先用 `roll_test.py` 模式扫描（看 actual 是否卡平台），勿盲目加 kp 顶限位
 5. 双臂动作注意相撞（尤其内收方向、双手在头顶聚拢时）
 
+## 固件内置动作（loco arm task，需 ai 运动模式在跑）
+
+- 遥控器实测映射：**select+Y=挥手**(task 0)，**select+A=握手伸手·不自动收回**(task 3)
+- SDK 触发（service `"sport"`，api 7106 SET_ARM_TASK，`/api/sport` 这台在线）：
+  `LocoClient.WaveHand()`=task0 / `WaveHand(True)`=task1挥手转身 /
+  `ShakeHand()`=task3伸手↔task2收回交替
+- **SDK 比遥控器多的能力**：task 2 握手收回、task 1 挥手转身
+- 内置动作轨迹在固件里闭源，SDK 只是"点播"；与自定义 lowcmd 手势库互斥
+  （内置动作要 ai 模式运行，lowcmd 要 ReleaseMode 停掉 ai）
+
 ## 当前进度 / 待办
 
 - ✅ 拜年 `bainian` 已入库（双臂举高+手掌挥）；张开 V 版（spread 0.7）用户已认可
