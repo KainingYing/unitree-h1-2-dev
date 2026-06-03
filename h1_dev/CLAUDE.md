@@ -68,7 +68,9 @@ lowcmd 控制，积累了手势库。所有结论均经真机实测校准。
 
 ## 固件内置动作（loco arm task，需 ai 运动模式在跑）
 
-- 遥控器实测映射：**select+Y=挥手**(task 0)，**select+A=握手伸手·不自动收回**
+- 遥控器实测映射（完整，X/B 已实测无动作）：**select+Y=挥手**(task 0)，
+  **select+A=握手伸手·不自动收回**；select+X / select+B 无任何动作。
+  握手收回段与 task1 挥手转身**遥控器无按键，仅 SDK 可触发**
 - SDK 触发（service `"sport"`，api 7106 SET_ARM_TASK，`/api/sport` 这台在线）：
   `LocoClient.WaveHand()`=task0 / `WaveHand(True)`=task1挥手转身 /
   `ShakeHand()`=task2↔3两段交替（代码首次默认调用发 task2，推测 task2=伸手、
