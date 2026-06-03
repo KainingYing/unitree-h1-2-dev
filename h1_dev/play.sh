@@ -36,6 +36,16 @@ case "$G" in
     echo "[合十 heshi] 双手合十"
     $PY heshi.py --shoulder -0.5 --elbow 2.0 --wrist 0.8 --hold 3 --iface eth0 ;;
 
+  guzhang)   # 鼓掌: 双手胸前开合 20秒
+    echo "[鼓掌 guzhang] 鼓掌欢迎"
+    $PY guzhang.py --shoulder -0.85 --elbow -0.05 --amp 0.35 --claps 20 --freq 1.0 --iface eth0 ;;
+
+  huanying)  # 欢迎仪式: 双手挥手欢迎 -> 抱拳作揖 (迎宾一条龙)
+    echo "[欢迎仪式 huanying] 双手挥手欢迎 -> 抱拳作揖"
+    $PY wave_both.py --shoulder -2.0 --elbow 1.0 --swing 0.5 --freq 0.9 --cycles 6 --mode sym --iface eth0
+    sleep 1
+    $PY baoquan.py --shoulder -0.6 --elbow 1.8 --bow_amp 0.2 --bows 3 --freq 0.4 --iface eth0 ;;
+
   ai|restore)  # 恢复 ai 运动模式(让遥控器 select+Y/A 内置动作恢复可用)
     $PY restore_ai.py eth0 ;;
 
@@ -47,6 +57,8 @@ case "$G" in
     echo "  bainian    拜年(双手举过头顶挥手欢迎)"
     echo "  baoquan    抱拳作揖(拱手礼)"
     echo "  jingli     敬礼(军礼)"
+    echo "  guzhang    鼓掌(20秒)"
+    echo "  huanying   欢迎仪式(挥手→抱拳连播)"
     echo "  heshi      双手合十"
     echo "  wave       挥手(单手举过头顶)"
     echo "  bolang     双臂波浪"
