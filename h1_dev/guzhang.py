@@ -37,6 +37,7 @@ class GuZhang:
         self.claps = a.claps
         self.freq = float(np.clip(a.freq, 0.3, 2.0))
         self.mode = a.mode
+        self.out = float(np.clip(a.out, 0.0, 1.0))   # 开时往外翻的角度
         self.raise_t, self.lower_t, self.settle = a.raise_t, a.lower_t, 0.5
         self.RAISE = {13: self.sh, 20: self.sh, 16: self.el, 23: self.el}
         self.dt = 0.002
@@ -90,11 +91,14 @@ class GuZhang:
             self.cmd.motor_cmd[21].q = base[21] - v
             self.cmd.motor_cmd[14].q = base[14] + v
         else:
-            # yaw合掌版: 双肩yaw软件PD(力矩-only电机), 双前臂向中线合拍
-            for idx, des in ((22, +v), (15, -v)):
+            # yaw合掌版: 双肩yaw软件PD。开=-out(往外翻) <-> 合=+amp(向中拍)
+            wave = (v / self.amp) if self.amp > 0 else 0.0   # 0~1
+            # 仅拍手阶段在[-out,+amp]间摆; 其他阶段(抬臂/放回)归零位
+            des = (-self.out + (self.amp + self.out) * wave) if clap else 0.0
+            for idx, sgn in ((22, +1), (15, -1)):
                 ms = self.low_state.motor_state[idx]
-                tau = 15.0 * (des - ms.q) + 1.0 * (0.0 - ms.dq)
-                tau = float(np.clip(tau, -3.5, 3.5))
+                tau = 25.0 * (sgn * des - ms.q) + 1.2 * (0.0 - ms.dq)
+                tau = float(np.clip(tau, -4.5, 4.5))
                 mc = self.cmd.motor_cmd[idx]
                 mc.kp = 0.0; mc.kd = 0.0; mc.q = 0.0; mc.tau = tau
         self.cmd.crc = self.crc.Crc(self.cmd)
@@ -128,7 +132,8 @@ if __name__ == "__main__":
     ap.add_argument("--amp", type=float, default=0.35)   # 开合幅度
     ap.add_argument("--claps", type=int, default=5)
     ap.add_argument("--freq", type=float, default=1.0)
-    ap.add_argument("--mode", default="roll", choices=["roll", "yaw"])  # roll=肩开合(20s原版), yaw=合掌拍(软件PD)
+    ap.add_argument("--mode", default="roll", choices=["roll", "yaw"])
+    ap.add_argument("--out", type=float, default=0.0)    # yaw模式: 开时往外翻角度  # roll=肩开合(20s原版), yaw=合掌拍(软件PD)
     ap.add_argument("--raise_t", type=float, default=3.5)
     ap.add_argument("--lower_t", type=float, default=3.0)
     GuZhang(ap.parse_args()).run()

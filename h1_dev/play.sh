@@ -40,6 +40,10 @@ case "$G" in
     echo "[鼓掌 guzhang] 鼓掌欢迎"
     $PY guzhang.py --shoulder -0.85 --elbow -0.05 --amp 0.35 --claps 20 --freq 1.0 --iface eth0 ;;
 
+  guzhang2)  # 鼓掌v2: 大开大合合掌拍(双肩yaw软件PD驱动)
+    echo "[鼓掌2 guzhang2] 大开大合合掌拍"
+    $PY guzhang.py --mode yaw --shoulder -0.85 --elbow -0.05 --amp 0.7 --out 0.5 --claps 8 --freq 0.6 --iface eth0 ;;
+
   huanying)  # 欢迎仪式: 双手挥手欢迎 -> 抱拳作揖 (迎宾一条龙)
     echo "[欢迎仪式 huanying] 双手挥手欢迎 -> 抱拳作揖"
     $PY wave_both.py --shoulder -2.0 --elbow 1.0 --swing 0.5 --freq 0.9 --cycles 6 --mode sym --iface eth0
@@ -57,7 +61,8 @@ case "$G" in
     echo "  bainian    拜年(双手举过头顶挥手欢迎)"
     echo "  baoquan    抱拳作揖(拱手礼)"
     echo "  jingli     敬礼(军礼)"
-    echo "  guzhang    鼓掌(20秒)"
+    echo "  guzhang    鼓掌(20秒,肩开合)"
+    echo "  guzhang2   鼓掌v2(大开大合合掌拍)"
     echo "  huanying   欢迎仪式(挥手→抱拳连播)"
     echo "  heshi      双手合十"
     echo "  wave       挥手(单手举过头顶)"
