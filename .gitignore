@@ -1,0 +1,11 @@
+# 官方 SDK clone(参考用，不入库)
+_ref/
+unitree_sdk2_python/
+
+# 编译产物
+h1_dev/build/
+
+# 本地配置/系统文件
+.claude/
+.DS_Store
+._*
