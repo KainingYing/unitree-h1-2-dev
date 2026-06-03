@@ -1,80 +1,94 @@
-# 宇树 H1-2 真机开发笔记
+# 宇树 H1-2 真机上肢动作开发（交接文档）
 
-2026-06-02 打通「从 0 到 1」手臂控制。本目录代码同步在板载机 `~/h1_dev/`。
+对一台真实 Unitree H1-2（带定制手套手臂）做上肢动作开发，悬挂调试。
+已打通 lowcmd 全链路控制，所有关节方向经真机标定。本文档面向接手开发者。
 
-## 连接
+## ✅ 当前已验证可用的动作（2026-06-03 实机确认）
 
-- 板载导航 PC：`unitree-h1-2-pc4`，`ssh unitree@192.168.123.164`（免密已配）。
-- DDS 走板载 `eth0`。板载机**无外网**，需要代码时从 Mac 传入。
-- Mac 经 USB 网卡 `en8`(192.168.123.222) 接入机器人内网。
+| 命令 | 动作 | 说明 |
+|------|------|------|
+| `./play.sh jingli` | **敬礼** 🫡 | 大臂侧平举+前臂深折至太阳穴，定格5秒 |
+| `./play.sh guzhang` | **鼓掌1** 👏 | 双手胸前、肩roll开合，20秒 |
+| `./play.sh guzhang2` | **鼓掌2** 👏 | 大开大合合掌拍，双肩yaw软件PD驱动（技术亮点）|
 
-## SDK 选型（关键）
+## ⚠️ 待修动作（勿直接演示）
 
-- ✅ 用官方 **`unitree_sdk2_python`**（已在板载 `~/unitree_sdk2_python`），跑在 conda `unitree` 环境：
-  `~/anaconda3/envs/unitree/bin/python`（含 cyclonedds + numpy）。IDL 与固件配套，能读 `rt/lowstate`。
-- ❌ 板载预装的旧库 `unitree_dds_wrapper 0.1.0` 的 hg IDL 与固件**不匹配**，读不到数据，已弃用。
-- C++ SDK 在 `/opt/unitree_robotics`（IDL 也配套，但 LowState 缺 `mode_machine`）。`read_state.cpp` 即用它。
+`bainian / baoquan / heshi / wave / bolang / conductor / huanying`
 
-## 控制方式（H1-2 = unitree_hg, 27 电机）
+**原因**：这些动作在**肘关节语义被纠正之前**调参（当时误以为 q 大=弯曲，实际相反），
+肘角全部理解反了，实际姿态与设计意图不符。**修复方法**：按下方"关节语义"中正确的
+肘定义重调各动作的 elbow 参数（参考 jingli/guzhang 的调法），逐个真机验证。
 
-- **只有 `rt/lowcmd` 可用**；`rt/arm_sdk` 运控未订阅（发了无效）。
-- 发 lowcmd 前必须 `MotionSwitcherClient.ReleaseMode()` 循环停掉 `ai` 高层运控。
-- 命令必须算 **crc**（`unitree_sdk2py.utils.crc.CRC`，运控校验）。
-- `mode_machine` 从 lowstate 读（实测=6）回填；`mode_pr=0`；每电机 `mode=1`。
+## 连接机器人
 
-## 关节索引（实测确认）
+- 板载导航 PC：`ssh unitree@192.168.123.164`（免密已配），主机名 `unitree-h1-2-pc4`
+- Mac 经**绿联 USB 网卡**直连，需手动配 IP：
+  `sudo ifconfig <网卡如en9> 192.168.123.222 netmask 255.255.255.0`
+- ⚠️ 大坑：**ping 通但 SSH 被拒** = 路由走了 VPN(utun)连到公司网同名 IP，不是机器人。
+  `route get 192.168.123.164` 检查 interface 是否是 USB 网卡；重插网卡+配 IP 解决
+- 板载机**无外网**。传代码：
+  `tar czf - -C h1_dev <files> | base64 | ssh unitree@192.168.123.164 'base64 -d | tar xzf - -C ~/h1_dev'`
 
-| 部位 | 索引 |
+## SDK（重要，踩过坑）
+
+- ✅ 用官方 **unitree_sdk2_python**（板载 `~/unitree_sdk2_python`），跑在 conda `unitree`
+  环境：`~/anaconda3/envs/unitree/bin/python`
+- ❌ 板载预装 `unitree_dds_wrapper 0.1.0` 与固件 IDL 不匹配（收不到数据），弃用
+- C++ SDK 在 `/opt/unitree_robotics`（能读 lowstate，`read_state.cpp` 用它）
+
+## 控制方式（unitree_hg，27 电机）
+
+- **仅 `rt/lowcmd` 可用**；`rt/arm_sdk` 此机运控未订阅（实测无效）
+- 发 lowcmd 前 `MotionSwitcherClient.ReleaseMode()` 停掉 `ai` 运控（脚本自动做）
+- 必须算 crc（`unitree_sdk2py.utils.crc.CRC`）；`mode_machine` 从 lowstate 读(=6)回填
+- 安全模式：**全身保持当前姿态，仅目标关节叠加轨迹**
+- ⚠️ **运控互斥**：跑自定义动作 → 运控停 → 遥控器按键/摇杆失效；
+  恢复遥控功能**只能重启机器人**（SDK 恢复不了状态机，loco/sport RPC 与此固件版本不匹配）
+
+## 关节语义（全部真机标定，接手人直接用）
+
+索引：左腿0-5 右腿6-11 腰12；左臂13-19(肩P/肩R/肩Y/肘/腕R/腕P/腕Y)；右臂20-26 同序。
+
+| 关节 | 语义（标定结论）|
+|------|----------------|
+| 肩pitch (13/20) | 负=前抬；-1.57≈水平前伸；-2.0 举过头顶（可达-1.87）|
+| 肩roll (14/21) | **外展=右负/左正**（张开,可达±0.85）；反向(内收)≈0.14 即硬限位，勿大kp顶 |
+| **肘 (16/23)** | ⚠️**q 减小=屈肘**（可到负，-0.77 实测可达）；q≈2.3 近伸直（看着"反关节"）；自然下垂 q≈1.3。**修正前所有动作按反方向调参，全错** |
+| **肩yaw (15/22)** | ⚠️**力矩-only 电机**：完全忽略 kp/q 位置指令，只执行 tau。控制必须**软件PD发tau**（kp25/kd1.2/tau限4.5 实测可平滑伺服,见 guzhang2）。静摩擦大有粘滑。直接发大tau会甩到限位(范围约-3.0~+1.2) |
+| 腕roll (17/24) | 正常位置控制，挥手/合十用过 |
+
+实测安全增益：腿/腰 kp100；肩pitch kp120 kd2.5；肩roll kp150 kd2.5；肘 kp70-90；其余 kp50 kd1。
+
+## 代码文件
+
+| 文件 | 用途 |
 |------|------|
-| 左腿 | 0-5 |
-| 右腿 | 6-11 |
-| 腰 WaistYaw | 12 |
-| 左臂 | 13-19（ShoulderPitch=13, Roll=14, Yaw=15, Elbow=16, WristRoll=17, Pitch=18, Yaw=19）|
-| 右臂 | 20-26（ShoulderPitch=20, …, Elbow=23, …）|
+| `play.sh` | 手势库入口（一键播放）|
+| `jingli.py` `guzhang.py` | ✅ 可用动作本体 |
+| `wave_both.py` `baoquan.py` `heshi.py` `wave_hi.py` `wave.py` `conductor.py` `arm_lift.py` | ⚠️ 待按新肘语义重调 |
+| `roll_test.py` `elbow_test.py` `yaw_test.py` | 关节方向/限位标定工具（新关节先用这些测）|
+| `yaw_pd_test.py` | yaw 软件PD伺服验证 |
+| `record.py` | 500Hz 全关节轨迹录制（可录内置动作做克隆）|
+| `key_probe.py` | 遥控器按键探测（注：此固件不广播按键数据）|
+| `restore_ai.py` | 恢复 ai 运控服务（注意：恢复不了按键状态机，那要重启）|
+| `read_state.cpp` | C++ 只读状态（build/ 下 cmake && make）|
 
-安全增益：腿/腰 kp=100，手臂 kp=50，kd=1。
+## 固件内置动作（与自定义动作互斥）
 
-## 复现
+- 遥控器：select+Y=挥手, select+A=握手伸手(不收回)；X/B 无动作
+- 需机器人在运动状态（开机后 L2+B → L2+↑ → R2+X 流程）
+- SDK 触发(LocoClient/task id)在此固件版本 RPC 不通(3102/3103)，未打通
 
-```bash
-# Mac 上改完代码后同步到板载机
-tar czf - -C ~/Desktop/yushu_h1/h1_dev arm_lift.py | base64 | \
-  ssh unitree@192.168.123.164 'base64 -d | tar xzf - -C ~/h1_dev'
+## 安全规则（不可妥协）
 
-# 板载机上运行（机器人务必悬挂离地、遥控在手）
-ssh unitree@192.168.123.164
-cd ~/h1_dev
-PY=~/anaconda3/envs/unitree/bin/python
+1. 任何运动命令前：机器人**悬挂离地+遥控在手**；**落地站立时绝不可跑自定义动作**（运控一停直接瘫倒）
+2. 新关节/新方向第一次动：用标定工具小幅单侧验证，再用于动作
+3. 双臂动作防相撞；力矩-only 关节必须闭环+限幅
+4. 怀疑限位先扫描（actual 卡平台=限位），勿盲目加 kp 顶
 
-# C++ 读状态（纯只读）
-cd build && cmake .. && make && ./read_state eth0
+## 下一步建议（按价值排序）
 
-# 安全手臂控制
-$PY arm_lift.py --amp 0               # 仅保持当前姿态(验证通道，机器人不动)
-$PY arm_lift.py --amp 0.3 --joint 13  # 左肩pitch抬0.3rad再放下
-$PY arm_lift.py --amp 0.5 --joint 16  # 左肘抬0.5rad再放下
-```
-
-## 手势库（命名动作）
-
-一键播放：`./play.sh <动作名>`（在板载机 `~/h1_dev/`）
-
-| 动作名 | 含义 | 实现 |
-|--------|------|------|
-| **`bainian`** | **拜年**：双手举过头顶、大臂锁定、手掌(手腕)左右同步挥动欢迎 | `wave_both.py --shoulder -2.0 --elbow 1.0 --swing 0.5 --freq 0.9 --cycles 6 --mode sym` |
-| `wave` | 挥手：右手举过头顶、小臂摆动 | `wave_hi.py --shoulder -2.0 --elbow 0.6 --swing 0.4 --freq 0.8 --cycles 5` |
-| `bolang` | 双臂波浪 | `wave.py --shoulder -0.8 --elbow 1.0 --amp 1.0 --freq 0.4 --cycles 4` |
-| `conductor` | 指挥（4拍十字） | `conductor.py --bpm 90 --bars 3 --amp_pitch 0.5 --amp_roll 0.32` |
-| `read` | 读状态（只读，机器人不动） | `read_state eth0` |
-
-```bash
-# 例：播放拜年动作
-ssh unitree@192.168.123.164
-~/h1_dev/play.sh bainian
-```
-
-## ⚠️ 安全须知
-
-- 首次/调试控制务必：机器人**悬挂离地 + 遥控在手**（可随时 L2+B 急停）。
-- `arm_lift.py` 设计：全程保持其余 26 关节当前姿态，只让一个关节缓慢小幅运动，硬限幅 ±0.8rad。
-- 脚本停掉 `ai` 模式后**不自动恢复**。结束后机器人处于无高层运控状态，**需用遥控器恢复运动模式**。
+1. **按正确肘语义重调待修动作**（参数化都在，逐个调 elbow 即可）
+2. **内置动作克隆**：运动状态下 `record.py` 录 select+Y 挥手 → 写回放（自然度对标官方）
+3. **LAFAN1 动捕数据上肢回放**（官方开源，真人动作）
+4. 左肩 yaw 大概率同为力矩-only，复用软件PD方案
