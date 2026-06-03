@@ -36,6 +36,7 @@ class GuZhang:
         self.amp = float(np.clip(a.amp, 0.0, 0.7))     # 开合幅度(yaw)
         self.claps = a.claps
         self.freq = float(np.clip(a.freq, 0.3, 2.0))
+        self.mode = a.mode
         self.raise_t, self.lower_t, self.settle = a.raise_t, a.lower_t, 0.5
         self.RAISE = {13: self.sh, 20: self.sh, 16: self.el, 23: self.el}
         self.dt = 0.002
@@ -79,13 +80,23 @@ class GuZhang:
             mc = self.cmd.motor_cmd[i]
             mc.mode = 1; mc.q = base[i]; mc.dq = 0.0; mc.tau = 0.0
             mc.kp = kp_of(i); mc.kd = kd_of(i)
+        v = 0.0
         if clap:
             cl = self.claps / self.freq; ramp = min(0.8, cl / 4)
             env = max(0.0, min(tc / ramp, (cl - tc) / ramp, 1.0))
-            # 用肩roll开合: v=0双手胸前相合, v=amp双臂外展分开 (yaw电机不响应,弃用)
             v = self.amp * env * 0.5 * (1 - math.cos(2 * math.pi * self.freq * tc))
-            self.cmd.motor_cmd[21].q = base[21] - v   # 右肩roll外展(开)
-            self.cmd.motor_cmd[14].q = base[14] + v   # 左肩roll外展(开,镜像)
+        if self.mode == "roll":
+            # 原版(用户定稿的20秒鼓掌): 肩roll开合
+            self.cmd.motor_cmd[21].q = base[21] - v
+            self.cmd.motor_cmd[14].q = base[14] + v
+        else:
+            # yaw合掌版: 双肩yaw软件PD(力矩-only电机), 双前臂向中线合拍
+            for idx, des in ((22, +v), (15, -v)):
+                ms = self.low_state.motor_state[idx]
+                tau = 15.0 * (des - ms.q) + 1.0 * (0.0 - ms.dq)
+                tau = float(np.clip(tau, -3.5, 3.5))
+                mc = self.cmd.motor_cmd[idx]
+                mc.kp = 0.0; mc.kd = 0.0; mc.q = 0.0; mc.tau = tau
         self.cmd.crc = self.crc.Crc(self.cmd)
         self.pub.Write(self.cmd)
 
@@ -117,6 +128,7 @@ if __name__ == "__main__":
     ap.add_argument("--amp", type=float, default=0.35)   # 开合幅度
     ap.add_argument("--claps", type=int, default=5)
     ap.add_argument("--freq", type=float, default=1.0)
+    ap.add_argument("--mode", default="roll", choices=["roll", "yaw"])  # roll=肩开合(20s原版), yaw=合掌拍(软件PD)
     ap.add_argument("--raise_t", type=float, default=3.5)
     ap.add_argument("--lower_t", type=float, default=3.0)
     GuZhang(ap.parse_args()).run()
