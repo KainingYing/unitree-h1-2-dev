@@ -20,10 +20,6 @@ case "$G" in
     echo "[波浪 bolang] 双臂波浪"
     $PY wave.py --shoulder -0.8 --elbow 1.0 --amp 1.0 --freq 0.4 --cycles 4 --mode sym --iface eth0 ;;
 
-  conductor|zhihui)  # 指挥：4拍十字
-    echo "[指挥 conductor] 4拍指挥"
-    $PY conductor.py --bpm 90 --bars 3 --amp_pitch 0.5 --amp_roll 0.32 --iface eth0 ;;
-
   baoquan)   # 抱拳作揖(拱手礼)：双手胸前合抱、上下拜3次
     echo "[抱拳 baoquan] 拱手作揖"
     $PY baoquan.py --shoulder -0.6 --elbow 1.8 --bow_amp 0.2 --bows 3 --freq 0.4 --iface eth0 ;;
@@ -36,13 +32,13 @@ case "$G" in
     echo "[合十 heshi] 双手合十"
     $PY heshi.py --shoulder -0.5 --elbow 2.0 --wrist 0.8 --hold 3 --iface eth0 ;;
 
-  guzhang2|guzhang)  # 鼓掌v2: 快拍合掌(双肩yaw软件PD+速度前馈丝滑版, 2026-06-04定稿)
-    echo "[鼓掌2 guzhang2] 快拍合掌"
+  guzhang)   # 鼓掌: 快拍合掌(双肩yaw软件PD+速度前馈丝滑版, 2026-06-04定稿)
+    echo "[鼓掌 guzhang] 快拍合掌"
     $PY guzhang.py --mode yaw --shoulder -0.85 --elbow -0.05 --amp 0.55 --out 0.1 --claps 14 --freq 1.4 --raise_t 1.8 --lower_t 2.0 --iface eth0 ;;
 
-  zhihui2|yanzou)  # 音乐指挥·钟摆弧版(2026-06-04定稿): 双手U形半圆弧往返,
-                   # 肩pitch/roll/yaw+肘+腕pitch/roll 全链波浪, 肩yaw软件PD
-    echo "[指挥2 zhihui2] 钟摆弧波浪指挥"
+  zhihui|yanzou)  # 音乐指挥·钟摆弧版(2026-06-04定稿): 双手U形半圆弧往返,
+                  # 肩pitch/roll/yaw+肘+腕pitch/roll 全链波浪, 肩yaw软件PD
+    echo "[指挥 zhihui] 钟摆弧波浪指挥"
     $PY conductor2.py --bpm 90 --bars 4 --elbow 0.6 --amp_sh 0.3 --amp_el 0.25 --amp_wr 0.4 --amp_roll 0.3 --amp_yaw 0.15 --amp_wroll 0.3 --spread 0.6 --iface eth0 ;;
 
   huanying)  # 欢迎仪式: 双手挥手欢迎 -> 抱拳作揖 (迎宾一条龙)
@@ -61,11 +57,11 @@ case "$G" in
     echo "H1-2 手势库   用法: ./play.sh <动作>"
     echo "  ── ✅已验证可用 ──────────────"
     echo "  jingli     敬礼(军礼)"
-    echo "  guzhang2   鼓掌(快拍合掌, guzhang 同义)"
-    echo "  zhihui2    指挥2/yanzou(钟摆弧波浪指挥)"
+    echo "  guzhang    鼓掌(快拍合掌)"
+    echo "  zhihui     指挥(钟摆弧波浪, yanzou 同义)"
     echo "  ── ⚠️待修(肘语义修正前调参,姿态不对) ──"
     echo "  bainian    拜年(待修)"
-    echo "  baoquan/heshi/wave/bolang/conductor/huanying (均待修)"
+    echo "  baoquan/heshi/wave/bolang/huanying (均待修)"
     echo "  ── 工具 ──────────────────────"
     echo "  ai         恢复ai运动模式(遥控器内置动作恢复可用)"
     echo "  read       读状态(只读，机器人不动)"
