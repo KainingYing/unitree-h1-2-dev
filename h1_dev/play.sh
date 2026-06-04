@@ -47,6 +47,10 @@ case "$G" in
     sleep 1
     $PY baoquan.py --shoulder -0.6 --elbow 1.8 --bow_amp 0.2 --bows 3 --freq 0.4 --iface eth0 ;;
 
+  biaoyan|show)  # 连贯表演: 敬礼->鼓掌14下->指挥3小节, 不复位平滑串联(~33s)
+    echo "[表演 biaoyan] 敬礼->鼓掌->指挥 连贯串烧"
+    $PY biaoyan.py --iface eth0 ;;
+
   welcome|yingbin)  # 欢迎招手: 右臂前伸+外展+前臂旋转 -> 手腕(腕pitch)正负震荡
     echo "[欢迎 welcome] 右臂前伸招手"
     $PY welcome_new.py ;;
@@ -64,6 +68,7 @@ case "$G" in
     echo "  guzhang    鼓掌(快拍合掌)"
     echo "  zhihui     指挥(钟摆弧波浪, yanzou 同义)"
     echo "  welcome    欢迎招手(右臂前伸, yingbin 同义)"
+    echo "  biaoyan    连贯表演: 敬礼->鼓掌->指挥(show 同义)"
     echo "  ── ⚠️待修(肘语义修正前调参,姿态不对) ──"
     echo "  bainian    拜年(待修)"
     echo "  baoquan/heshi/wave/bolang/huanying (均待修)"

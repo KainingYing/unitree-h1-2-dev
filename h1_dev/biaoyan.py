@@ -24,7 +24,7 @@ POSE_COND   = {13: -0.90, 20: -0.90, 16: 0.60, 23: 0.60,
 CLAP_AMP, CLAP_OUT, CLAP_F, CLAPS = 0.55, 0.10, 1.4, 14
 # 指挥叠加(zhihui定稿): bpm75 bars3 摆幅 sh.3 el.25 wr.4 roll.3 yaw.15 wroll.3 lag.9
 BPM, BARS = 75, 3
-A_SH, A_EL, A_WR, A_RO, A_YW, A_WRO, LAG, SP = 0.30, 0.25, 0.40, 0.30, 0.15, 0.30, 0.9, 0.60
+A_SH, A_EL, A_WR, A_RO, A_YW, A_WRO, LAG, SP = 0.30, 0.87, 0.40, 0.30, 0.15, 0.30, 0.9, 0.60
 
 
 def kp_of(i):
@@ -117,7 +117,7 @@ class BiaoYan:
             d_ro = A_RO * env * math.sin(ph)
             d_ro = max(-min(A_RO, SP - 0.15), d_ro)
             d_sh = -A_SH * env * math.sin(ph) ** 2
-            d_el = -A_EL * env * math.sin(ph - LAG) ** 2
+            d_el = -A_EL * env * (1.0 - math.sin(ph)) * 0.5   # 肘与开合联动(合拢最弯)
             d_wr = A_WR * env * math.sin(ph - 2 * LAG)
             d_wro = A_WRO * env * math.sin(ph - 1.5 * LAG)
             for shp, el, wrp, wro in ((13, 16, 18, 17), (20, 23, 25, 24)):
