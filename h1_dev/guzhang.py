@@ -73,6 +73,7 @@ class GuZhang:
 
     def write(self, t):
         ratio, clap, tc = self.stage(t)
+        ratio = 0.5 - 0.5 * math.cos(math.pi * ratio)   # 余弦缓动: 抬起/放回轻起轻停
         base = list(self.q0)
         for idx, tgt in self.RAISE.items():
             base[idx] = self.q0[idx] + (tgt - self.q0[idx]) * ratio

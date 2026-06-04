@@ -80,6 +80,7 @@ class Conductor2:
 
     def write(self, t):
         ratio, conduct, tc = self.stage(t)
+        ratio = 0.5 - 0.5 * math.cos(math.pi * ratio)   # 余弦缓动: 抬起/放回轻起轻停
         base = list(self.q0)
         for idx, tgt in self.RAISE.items():
             base[idx] = self.q0[idx] + (tgt - self.q0[idx]) * ratio
@@ -99,7 +100,7 @@ class Conductor2:
             d_ro = self.a_ro * env * math.sin(ph)                          # 左右摆(开合)
             d_ro = max(-min(self.a_ro, max(self.sp - 0.15, 0.0)), d_ro)    # 防进内收限位
             d_sh = -self.a_sh * env * math.sin(ph) ** 2                    # 端点抬高(负=抬)
-            d_el = -self.a_el * env * math.sin(ph - self.lag) ** 2         # 肘滞后屈伸跟随
+            d_el = self.a_el * env * math.sin(ph - self.lag)               # 肘全幅屈伸(夹角随摆动开合)
             d_wr = self.a_wr * env * math.sin(ph - 2 * self.lag)           # 腕甩尾
             d_wro = self.a_wro * env * math.sin(ph - 1.5 * self.lag)       # 前臂旋转(腕roll)
             self.cmd.motor_cmd[17].q = base[17] + d_wro   # 左腕roll

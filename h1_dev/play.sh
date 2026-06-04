@@ -26,7 +26,7 @@ case "$G" in
 
   jingli)    # 敬礼(军礼): 大臂侧平举与肩平、前臂深折、指尖太阳穴
     echo "[敬礼 jingli] 军礼"
-    $PY jingli.py --shoulder -1.35 --elbow -0.75 --spread -0.9 --yaw 0.25 --wrist 0.3 --hold 5 --iface eth0 ;;
+    $PY jingli.py --shoulder -1.35 --elbow -0.75 --spread -0.9 --yaw 0.25 --wrist 0.3 --hold 5 --lower_t 4.5 --iface eth0 ;;
 
   heshi)     # 双手合十
     echo "[合十 heshi] 双手合十"
@@ -34,12 +34,12 @@ case "$G" in
 
   guzhang)   # 鼓掌: 快拍合掌(双肩yaw软件PD+速度前馈丝滑版, 2026-06-04定稿)
     echo "[鼓掌 guzhang] 快拍合掌"
-    $PY guzhang.py --mode yaw --shoulder -0.85 --elbow -0.05 --amp 0.55 --out 0.1 --claps 14 --freq 1.4 --raise_t 1.8 --lower_t 2.0 --iface eth0 ;;
+    $PY guzhang.py --mode yaw --shoulder -0.85 --elbow -0.05 --amp 0.55 --out 0.1 --claps 14 --freq 1.4 --raise_t 1.8 --lower_t 3.0 --iface eth0 ;;
 
   zhihui|yanzou)  # 音乐指挥·钟摆弧版(2026-06-04定稿): 双手U形半圆弧往返,
                   # 肩pitch/roll/yaw+肘+腕pitch/roll 全链波浪, 肩yaw软件PD
     echo "[指挥 zhihui] 钟摆弧波浪指挥"
-    $PY conductor2.py --bpm 90 --bars 4 --elbow 0.6 --amp_sh 0.3 --amp_el 0.25 --amp_wr 0.4 --amp_roll 0.3 --amp_yaw 0.15 --amp_wroll 0.3 --spread 0.6 --iface eth0 ;;
+    $PY conductor2.py --bpm 75 --bars 4 --elbow 0.6 --amp_sh 0.3 --amp_el 0.35 --amp_wr 0.4 --amp_roll 0.3 --amp_yaw 0.15 --amp_wroll 0.3 --spread 0.6 --raise_t 1.5 --lower_t 3.5 --iface eth0 ;;
 
   huanying)  # 欢迎仪式: 双手挥手欢迎 -> 抱拳作揖 (迎宾一条龙)
     echo "[欢迎仪式 huanying] 双手挥手欢迎 -> 抱拳作揖"

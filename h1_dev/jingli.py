@@ -62,18 +62,40 @@ class JingLi:
         print("[init] 敬礼位: 肩=%.2f 肘=%.2f(夹角~%d°) 外张=%.2f 腕=%.2f 保持%.1fs" %
               (self.sh, self.el, int(180 - math.degrees(self.el)), self.sp, self.wr, self.hold))
 
+    @staticmethod
+    def _ease(u):
+        import math as _m
+        u = min(max(u, 0.0), 1.0)
+        return 0.5 - 0.5 * _m.cos(_m.pi * u)
+
+    # 放回错峰窗口(进度0~1): 先收肘/腕(手先离开太阳穴), 再放肩pitch,
+    # 肩roll外展最后收 -> 手臂沿体侧外面落下, 不横扫胸前打到身体
+    LOWER_WIN = {23: (0.00, 0.55), 24: (0.00, 0.50), 22: (0.10, 0.60),
+                 20: (0.20, 0.85), 21: (0.45, 1.00)}
+
     def stage(self, t):
         s, r, h, lo = self.settle, self.raise_t, self.hold, self.lower_t
-        if t < s:               return 0.0
-        if t < s + r:           return (t - s) / r
-        if t < s + r + h:       return 1.0
-        if t < s + r + h + lo:  return 1.0 - (t - (s + r + h)) / lo
-        return 0.0
+        if t < s:               return "pre", 0.0
+        if t < s + r:           return "raise", (t - s) / r
+        if t < s + r + h:       return "hold", 1.0
+        if t < s + r + h + lo:  return "lower", (t - (s + r + h)) / lo
+        return "end", 1.0
 
     def write(self, t):
-        ratio = self.stage(t)
+        ph, p = self.stage(t)
         base = list(self.q0)
         for idx, tgt in self.RAISE.items():
+            if ph == "pre":
+                ratio = 0.0
+            elif ph == "raise":
+                ratio = self._ease(p)
+            elif ph == "hold":
+                ratio = 1.0
+            elif ph == "lower":
+                w0, w1 = self.LOWER_WIN.get(idx, (0.0, 1.0))
+                ratio = 1.0 - self._ease((p - w0) / (w1 - w0))
+            else:
+                ratio = 0.0
             base[idx] = self.q0[idx] + (tgt - self.q0[idx]) * ratio
         self.cmd.mode_pr = 0; self.cmd.mode_machine = self.mode_machine
         for i in range(NUM):
