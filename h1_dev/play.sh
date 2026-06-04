@@ -44,6 +44,11 @@ case "$G" in
     echo "[鼓掌2 guzhang2] 快拍合掌"
     $PY guzhang.py --mode yaw --shoulder -0.85 --elbow -0.05 --amp 0.55 --out 0.1 --claps 14 --freq 1.4 --raise_t 1.8 --lower_t 2.0 --iface eth0 ;;
 
+  zhihui2|yanzou)  # 音乐指挥·钟摆弧版(2026-06-04定稿): 双手U形半圆弧往返,
+                   # 肩pitch/roll/yaw+肘+腕pitch/roll 全链波浪, 肩yaw软件PD
+    echo "[指挥2 zhihui2] 钟摆弧波浪指挥"
+    $PY conductor2.py --bpm 90 --bars 4 --elbow 0.6 --amp_sh 0.3 --amp_el 0.25 --amp_wr 0.4 --amp_roll 0.3 --amp_yaw 0.15 --amp_wroll 0.3 --spread 0.6 --iface eth0 ;;
+
   huanying)  # 欢迎仪式: 双手挥手欢迎 -> 抱拳作揖 (迎宾一条龙)
     echo "[欢迎仪式 huanying] 双手挥手欢迎 -> 抱拳作揖"
     $PY wave_both.py --shoulder -2.0 --elbow 1.0 --swing 0.5 --freq 0.9 --cycles 6 --mode sym --iface eth0
@@ -61,7 +66,8 @@ case "$G" in
     echo "  ── ✅已验证可用 ──────────────"
     echo "  jingli     敬礼(军礼)"
     echo "  guzhang    鼓掌1(20秒,肩开合)"
-    echo "  guzhang2   鼓掌2(大开大合合掌拍)"
+    echo "  guzhang2   鼓掌2(快拍合掌)"
+    echo "  zhihui2    指挥2/yanzou(钟摆弧波浪指挥)"
     echo "  ── ⚠️待修(肘语义修正前调参,姿态不对) ──"
     echo "  bainian    拜年(待修)"
     echo "  baoquan/heshi/wave/bolang/conductor/huanying (均待修)"
