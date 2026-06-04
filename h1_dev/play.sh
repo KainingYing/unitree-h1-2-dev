@@ -39,13 +39,17 @@ case "$G" in
   zhihui|yanzou)  # 音乐指挥·钟摆弧版(2026-06-04定稿): 双手U形半圆弧往返,
                   # 肩pitch/roll/yaw+肘+腕pitch/roll 全链波浪, 肩yaw软件PD
     echo "[指挥 zhihui] 钟摆弧波浪指挥"
-    $PY conductor2.py --bpm 75 --bars 4 --elbow 0.6 --amp_sh 0.3 --amp_el 0.35 --amp_wr 0.4 --amp_roll 0.3 --amp_yaw 0.15 --amp_wroll 0.3 --spread 0.6 --raise_t 1.5 --lower_t 3.5 --iface eth0 ;;
+    $PY conductor2.py --bpm 75 --bars 4 --elbow 0.6 --amp_sh 0.3 --amp_el 0.87 --amp_wr 0.4 --amp_roll 0.3 --amp_yaw 0.15 --amp_wroll 0.3 --spread 0.6 --raise_t 1.5 --lower_t 3.5 --iface eth0 ;;
 
   huanying)  # 欢迎仪式: 双手挥手欢迎 -> 抱拳作揖 (迎宾一条龙)
     echo "[欢迎仪式 huanying] 双手挥手欢迎 -> 抱拳作揖"
     $PY wave_both.py --shoulder -2.0 --elbow 1.0 --swing 0.5 --freq 0.9 --cycles 6 --mode sym --iface eth0
     sleep 1
     $PY baoquan.py --shoulder -0.6 --elbow 1.8 --bow_amp 0.2 --bows 3 --freq 0.4 --iface eth0 ;;
+
+  welcome|yingbin)  # 欢迎招手: 右臂前伸+外展+前臂旋转 -> 手腕(腕pitch)正负震荡
+    echo "[欢迎 welcome] 右臂前伸招手"
+    $PY welcome_new.py ;;
 
   ai|restore)  # 恢复 ai 运动模式(让遥控器 select+Y/A 内置动作恢复可用)
     $PY restore_ai.py eth0 ;;
@@ -59,6 +63,7 @@ case "$G" in
     echo "  jingli     敬礼(军礼)"
     echo "  guzhang    鼓掌(快拍合掌)"
     echo "  zhihui     指挥(钟摆弧波浪, yanzou 同义)"
+    echo "  welcome    欢迎招手(右臂前伸, yingbin 同义)"
     echo "  ── ⚠️待修(肘语义修正前调参,姿态不对) ──"
     echo "  bainian    拜年(待修)"
     echo "  baoquan/heshi/wave/bolang/huanying (均待修)"

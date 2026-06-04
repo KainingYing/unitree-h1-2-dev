@@ -39,7 +39,7 @@ class Conductor2:
         self.a_ro = float(np.clip(a.amp_roll, 0.0, 0.35))  # 肩roll左右晃(外展方向摆)
         self.a_yw = float(np.clip(a.amp_yaw, 0.0, 0.5))    # 肩yaw旋摆(软件PD驱动)
         self.a_wro = float(np.clip(a.amp_wroll, 0.0, 0.8)) # 腕roll前臂旋转
-        self.a_el = float(np.clip(a.amp_el, 0.0, 0.5))     # 肘摆幅
+        self.a_el = float(np.clip(a.amp_el, 0.0, 1.0))     # 肘屈摆深度(0.87≈50°)
         self.a_wr = float(np.clip(a.amp_wr, 0.0, 0.8))     # 腕pitch摆幅
         self.lag = float(np.clip(a.lag, 0.0, 2.5))         # 关节间相位差(波浪感)
         self.raise_t, self.lower_t, self.settle = a.raise_t, a.lower_t, 0.5
@@ -100,7 +100,9 @@ class Conductor2:
             d_ro = self.a_ro * env * math.sin(ph)                          # 左右摆(开合)
             d_ro = max(-min(self.a_ro, max(self.sp - 0.15, 0.0)), d_ro)    # 防进内收限位
             d_sh = -self.a_sh * env * math.sin(ph) ** 2                    # 端点抬高(负=抬)
-            d_el = self.a_el * env * math.sin(ph - self.lag)               # 肘全幅屈伸(夹角随摆动开合)
+            # 肘与开合联动: 双手最分开(sin=+1)夹角最大(=起手角),
+            # 最靠近(sin=-1)夹角最小(=起手角-amp_el, 默认50°)
+            d_el = -self.a_el * env * (1.0 - math.sin(ph)) * 0.5
             d_wr = self.a_wr * env * math.sin(ph - 2 * self.lag)           # 腕甩尾
             d_wro = self.a_wro * env * math.sin(ph - 1.5 * self.lag)       # 前臂旋转(腕roll)
             self.cmd.motor_cmd[17].q = base[17] + d_wro   # 左腕roll
