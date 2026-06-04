@@ -36,11 +36,7 @@ case "$G" in
     echo "[合十 heshi] 双手合十"
     $PY heshi.py --shoulder -0.5 --elbow 2.0 --wrist 0.8 --hold 3 --iface eth0 ;;
 
-  guzhang)   # 鼓掌: 双手胸前开合 20秒
-    echo "[鼓掌 guzhang] 鼓掌欢迎"
-    $PY guzhang.py --shoulder -0.85 --elbow -0.05 --amp 0.35 --claps 20 --freq 1.0 --iface eth0 ;;
-
-  guzhang2)  # 鼓掌v2: 快拍合掌(双肩yaw软件PD+速度前馈丝滑版, 2026-06-04定稿)
+  guzhang2|guzhang)  # 鼓掌v2: 快拍合掌(双肩yaw软件PD+速度前馈丝滑版, 2026-06-04定稿)
     echo "[鼓掌2 guzhang2] 快拍合掌"
     $PY guzhang.py --mode yaw --shoulder -0.85 --elbow -0.05 --amp 0.55 --out 0.1 --claps 14 --freq 1.4 --raise_t 1.8 --lower_t 2.0 --iface eth0 ;;
 
@@ -65,8 +61,7 @@ case "$G" in
     echo "H1-2 手势库   用法: ./play.sh <动作>"
     echo "  ── ✅已验证可用 ──────────────"
     echo "  jingli     敬礼(军礼)"
-    echo "  guzhang    鼓掌1(20秒,肩开合)"
-    echo "  guzhang2   鼓掌2(快拍合掌)"
+    echo "  guzhang2   鼓掌(快拍合掌, guzhang 同义)"
     echo "  zhihui2    指挥2/yanzou(钟摆弧波浪指挥)"
     echo "  ── ⚠️待修(肘语义修正前调参,姿态不对) ──"
     echo "  bainian    拜年(待修)"
