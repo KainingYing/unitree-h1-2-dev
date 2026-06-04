@@ -26,7 +26,7 @@ case "$G" in
 
   jingli)    # 敬礼(军礼): 大臂侧平举与肩平、前臂深折、指尖太阳穴
     echo "[敬礼 jingli] 军礼"
-    $PY jingli.py --shoulder -1.35 --elbow -0.75 --spread -0.9 --yaw 0.25 --wrist 0.3 --hold 5 --lower_t 4.5 --iface eth0 ;;
+    $PY jingli.py --shoulder -1.35 --elbow -0.9 --spread -1.2 --yaw 0 --wrist 0.52 --hold 5 --lower_t 4.5 --iface eth0 ;;
 
   heshi)     # 双手合十
     echo "[合十 heshi] 双手合十"

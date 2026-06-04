@@ -33,7 +33,7 @@ class JingLi:
         self.iface = a.iface
         self.sh = float(np.clip(a.shoulder, -1.6, 0.0))   # 右肩pitch(上臂抬)
         self.el = float(np.clip(a.elbow, -1.2, 2.5))      # 肘角:q小=屈曲(可为负)! 夹角随q减小
-        self.sp = float(np.clip(a.spread, -0.9, 0.0))     # 右肩roll(负=外张,军礼肘朝侧)
+        self.sp = float(np.clip(a.spread, -1.2, 0.0))     # 右肩roll(负=外张,军礼肘朝侧; >0.9为新区域小步试)
         self.wr = float(np.clip(a.wrist, -1.2, 1.2))      # 右腕roll(手掌姿态微调)
         self.yw = float(np.clip(a.yaw, -1.2, 1.2))        # 右肩yaw(内旋使前臂指向太阳穴)
         self.hold = a.hold
@@ -88,7 +88,8 @@ class JingLi:
             if ph == "pre":
                 ratio = 0.0
             elif ph == "raise":
-                ratio = self._ease(p)
+                # yaw(22)提前窗口: 抬臂前60%内完成旋转(软PD慢, 早走早到位)
+                ratio = self._ease(min(p / 0.6, 1.0)) if idx == 22 else self._ease(p)
             elif ph == "hold":
                 ratio = 1.0
             elif ph == "lower":
@@ -97,11 +98,16 @@ class JingLi:
             else:
                 ratio = 0.0
             base[idx] = self.q0[idx] + (tgt - self.q0[idx]) * ratio
+        # 右肩yaw(22)是力矩电机, 位置指令无效 -> 软件PD发tau伺服到base[22]
+        ms22 = self.low_state.motor_state[22]
+        tau22 = float(np.clip(14.0 * (base[22] - ms22.q) + 1.0 * (0.0 - ms22.dq), -4.5, 4.5))
         self.cmd.mode_pr = 0; self.cmd.mode_machine = self.mode_machine
         for i in range(NUM):
             mc = self.cmd.motor_cmd[i]
             mc.mode = 1; mc.q = base[i]; mc.dq = 0.0; mc.tau = 0.0
             mc.kp = kp_of(i); mc.kd = kd_of(i)
+        mc = self.cmd.motor_cmd[22]
+        mc.kp = 0.0; mc.kd = 0.0; mc.q = 0.0; mc.tau = tau22
         self.cmd.crc = self.crc.Crc(self.cmd)
         self.pub.Write(self.cmd)
 
