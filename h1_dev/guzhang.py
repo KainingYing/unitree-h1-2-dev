@@ -92,12 +92,19 @@ class GuZhang:
             self.cmd.motor_cmd[14].q = base[14] + v
         else:
             # yaw合掌版: 双肩yaw软件PD。开=-out(往外翻) <-> 合=+amp(向中拍)
-            wave = (v / self.amp) if self.amp > 0 else 0.0   # 0~1
-            # 仅拍手阶段在[-out,+amp]间摆; 其他阶段(抬臂/放回)归零位
-            des = (-self.out + (self.amp + self.out) * wave) if clap else 0.0
+            # 丝滑化: ①包络乘整条轨迹(消拍手起止的-out阶跃) ②速度前馈(跟踪期望
+            # 速度而非刹到0, 消顿挫) ③降软kp避免力矩长期饱和
+            des, des_dot = 0.0, 0.0
+            if clap:
+                cl = self.claps / self.freq; ramp = min(0.8, cl / 4)
+                env = max(0.0, min(tc / ramp, (cl - tc) / ramp, 1.0))
+                raw = 0.5 * (1 - math.cos(2 * math.pi * self.freq * tc))   # 0~1
+                raw_dot = math.pi * self.freq * math.sin(2 * math.pi * self.freq * tc)
+                des = env * (-self.out + (self.amp + self.out) * raw)
+                des_dot = env * (self.amp + self.out) * raw_dot
             for idx, sgn in ((22, +1), (15, -1)):
                 ms = self.low_state.motor_state[idx]
-                tau = 25.0 * (sgn * des - ms.q) + 1.2 * (0.0 - ms.dq)
+                tau = 14.0 * (sgn * des - ms.q) + 1.0 * (sgn * des_dot - ms.dq)
                 tau = float(np.clip(tau, -4.5, 4.5))
                 mc = self.cmd.motor_cmd[idx]
                 mc.kp = 0.0; mc.kd = 0.0; mc.q = 0.0; mc.tau = tau

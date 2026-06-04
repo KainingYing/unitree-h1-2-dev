@@ -40,9 +40,9 @@ case "$G" in
     echo "[鼓掌 guzhang] 鼓掌欢迎"
     $PY guzhang.py --shoulder -0.85 --elbow -0.05 --amp 0.35 --claps 20 --freq 1.0 --iface eth0 ;;
 
-  guzhang2)  # 鼓掌v2: 大开大合合掌拍(双肩yaw软件PD驱动)
-    echo "[鼓掌2 guzhang2] 大开大合合掌拍"
-    $PY guzhang.py --mode yaw --shoulder -0.85 --elbow -0.05 --amp 0.7 --out 0.5 --claps 8 --freq 0.6 --iface eth0 ;;
+  guzhang2)  # 鼓掌v2: 快拍合掌(双肩yaw软件PD+速度前馈丝滑版, 2026-06-04定稿)
+    echo "[鼓掌2 guzhang2] 快拍合掌"
+    $PY guzhang.py --mode yaw --shoulder -0.85 --elbow -0.05 --amp 0.55 --out 0.1 --claps 14 --freq 1.4 --raise_t 1.8 --lower_t 2.0 --iface eth0 ;;
 
   huanying)  # 欢迎仪式: 双手挥手欢迎 -> 抱拳作揖 (迎宾一条龙)
     echo "[欢迎仪式 huanying] 双手挥手欢迎 -> 抱拳作揖"
